@@ -1,21 +1,22 @@
 import { OpenAI } from 'openai';
-import { input } from '@inquirer/prompts';
 import { taskPrompt } from './prompts';
-import { startSpinner } from './spinner';
 import { toolsDefinitions, tools } from './tools';
 import { ResponseInput } from 'openai/resources/responses/responses';
 import 'dotenv/config';
+import consola from 'consola';
 
 async function main() {
-    const task = await input({ message: 'Enter a task' });
+    consola.box('Started session');
+    const task = await consola.prompt('Enter a task', { type: 'text' });
     let messages: ResponseInput = [
         { role: 'user', content: taskPrompt(task) },
     ];
 
-    const stopSpinner = startSpinner('Working…');
+    consola.start('Cooking...');
 
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
+        consola.error('Missing OPENAI_API_KEY in environment');
         throw new Error('Missing OPENAI_API_KEY in environment');
     }
     const openai = new OpenAI({ apiKey });
@@ -29,6 +30,8 @@ async function main() {
         const content = completion.output[completion.output.length - 1];
         const type = content.type;
         if (type === 'function_call') {
+            consola.info('Request to tool:', { name: content.name});
+
             messages.push(...completion.output);
             const toolResult = await tools[content.name](JSON.parse(content.arguments));
             messages.push({
@@ -40,11 +43,10 @@ async function main() {
         else if (type === 'message') {
             const outputContent = content.content[0];
             if (outputContent.type === 'output_text') {
-                console.log(outputContent.text);
+                consola.log(outputContent.text);
             }
-            stopSpinner();
 
-            const task = await input({ message: 'Enter a task' });
+            const task = await consola.prompt('Enter a task', { type: 'text' });
             messages.push({
                 role: 'user',
                 content: taskPrompt(task),
