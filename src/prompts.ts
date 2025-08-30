@@ -10,6 +10,11 @@ export function taskPrompt(task: string) {
     3. **Implement Step by Step**: For each component, use the provided tools to create directories, files, and write code. Ensure each step is thoroughly completed before moving on.
     4. **Review and Refine**: Review the code you've written. Update files if necessary.
     5. **Ensure Completeness**: Do not leave any placeholders or incomplete code.
+    
+
+    Notes:
+    - Respect the code formatting and indentation.
+    - Respect the code style guide.
 
     Remember to think carefully at each step, ensuring the code is complete, functional, and meets the user's requirements.
     ------------
