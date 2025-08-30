@@ -22,14 +22,14 @@ async function main() {
 
     while (true) {
         const completion = await openai.responses.create({
-            model: 'gpt-5-mini',
+            model: 'gpt-5',
             input: messages,
             tools: toolsDefinitions
         });
         const content = completion.output[completion.output.length - 1];
         const type = content.type;
         if (type === 'function_call') {
-            messages = completion.output;
+            messages.push(...completion.output);
             const toolResult = await tools[content.name](JSON.parse(content.arguments));
             messages.push({
                 type: "function_call_output",
@@ -38,8 +38,17 @@ async function main() {
             })
         }
         else if (type === 'message') {
+            const outputContent = content.content[0];
+            if (outputContent.type === 'output_text') {
+                console.log(outputContent.text);
+            }
             stopSpinner();
-            break;
+
+            const task = await input({ message: 'Enter a task' });
+            messages.push({
+                role: 'user',
+                content: taskPrompt(task),
+            });
         }
     }
 
